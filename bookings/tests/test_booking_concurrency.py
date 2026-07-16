@@ -1,10 +1,10 @@
 import threading
-import pytest
 from django.contrib.auth import get_user_model
 from providers.models import ProviderProfile, Service, Availability
 from bookings.models import Booking
 from bookings.services import create_booking
 from django.core.exceptions import ValidationError
+from django.db import connection
 from django.utils import timezone
 from datetime import timedelta
 from django.test import TransactionTestCase
@@ -62,6 +62,8 @@ class BookingConcurrencyTest(TransactionTestCase):
             except ValidationError:
                 with lock:
                     results["failure"] += 1
+            finally:
+                connection.close()
 
         thread_a = threading.Thread(target=attempt_booking, args=(self.client_a,))
         thread_b = threading.Thread(target=attempt_booking, args=(self.client_b,))
