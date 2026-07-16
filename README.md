@@ -24,7 +24,10 @@ organization" pattern.
 - `User` — custom user model with a `client` / `provider` role
 - `ProviderProfile` — public business profile, one-to-one with a provider user
 - `Service` — a bookable offering belonging to a provider
-- `Booking` *(planned)* — links a client to a provider's service at a scheduled time
+- `Availability` — a bookable time slot for a provider's service
+- `Booking` — links a client to an availability slot; created through a
+  concurrency-safe service (`select_for_update()`) so two clients can't
+  double-book the same slot
 - `Review` *(planned)* — client feedback tied to a completed booking
 
 ## Tech stack
@@ -55,27 +58,31 @@ organization" pattern.
 ## Local development
 
 ```bash
-git clone https://github.com/<your-username>/localpro.git
-cd localpro
+git clone https://github.com/KirilShy/LocalPro.git
+cd LocalPro
 python -m venv venv
-source venv/bin/activate
+source venv/bin/activate       # venv\Scripts\activate on Windows
 pip install -r requirements/local.txt
+
+cp .env.example .env           # then fill in SECRET_KEY and DB_* values
+docker compose up -d           # starts Postgres
+
 python manage.py migrate
 python manage.py runserver
 ```
-
-*(Docker Compose setup coming soon — will replace the manual steps above.)*
 
 ## Roadmap
 
 - [x] Custom User model with role-based access
 - [x] Provider profile and service models with public-read / owner-write permissions
 - [x] JWT authentication
-- [ ] Registration flow
-- [ ] Availability and booking system
+- [x] Registration flow
+- [x] Postgres via docker-compose for local development
+- [x] Concurrency-safe booking creation (`select_for_update()`), covered by a threaded test
+- [ ] Booking API endpoints (currently only a service function, no views/serializers yet)
 - [ ] Review system
 - [ ] React frontend
-- [ ] Dockerized local dev environment
+- [ ] Fully dockerized app (Django itself still runs outside Docker)
 - [ ] AI-powered semantic provider search
 - [ ] AWS deployment via Terraform
 - [ ] CI/CD pipeline
