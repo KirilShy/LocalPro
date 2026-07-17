@@ -9,7 +9,38 @@ services:
       - "${DB_PORT}:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  backend:
+    build:
+      context: ./backend
+    command: gunicorn config.wsgi:application --bind 0.0.0.0:8000 --reload
+    volumes:
+      - ./backend:/app
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      # host-run Django (venv) uses localhost:${DB_PORT} from .env; this
+      # service is on the compose network instead, so it talks to the db
+      # service directly by name on Postgres's internal port
+      DB_HOST: db
+      DB_PORT: 5432
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
 
 volumes:
   postgres-data:
