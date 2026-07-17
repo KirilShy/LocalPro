@@ -6,7 +6,7 @@ class ServiceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Service
         fields = [
-            'id', 'provider', 'title', 'description', 'duration', 'price', 'is_active'
+            'id', 'provider', 'title', 'description', 'duration_minutes', 'price', 'is_active'
         ]
         read_only_fields = ['provider']
 
