@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'providers',
     "rest_framework_simplejwt.token_blacklist",
     'bookings',
+    'corsheaders',
 ]
 
 REST_FRAMEWORK = {
@@ -69,6 +70,7 @@ SIMPLE_JWT = {
 }
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -159,3 +161,8 @@ STORAGES = {
         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
     },
 }
+
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",
+]
