@@ -3,13 +3,26 @@ import reactLogo from './assets/react.svg'
 import viteLogo from './assets/vite.svg'
 import heroImg from './assets/hero.png'
 import ProviderList from './components/ProviderList'
+import LoginForm from './components/LoginForm'
+import { logout } from './api/auth'
 import './App.css'
 
 function App() {
   const [count, setCount] = useState(0)
+  const [isLoggedIn, setIsLoggedIn] = useState(
+    () => !!localStorage.getItem('access_token'),
+  )
 
   return (
     <>
+      {isLoggedIn ? (
+        <button type="button" onClick={() => { logout(); setIsLoggedIn(false) }}>
+          Log out
+        </button>
+      ) : (
+        <LoginForm onSuccess={() => setIsLoggedIn(true)} />
+      )}
+
       <ProviderList />
 
       <section id="center">
