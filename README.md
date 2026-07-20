@@ -14,11 +14,15 @@ Current focus: core data model, authentication, and permission architecture.
 ## Architecture
 
 LocalPro is a two-sided marketplace, not a simple multi-tenant SaaS. Provider 
-profiles and services are **publicly readable** (anyone can search and browse, 
-even unauthenticated), but only the owning provider can create or modify their 
-own listings. This mixed public-read / scoped-write permission model is more 
-representative of real marketplace platforms than a simple "isolate by 
-organization" pattern.
+profiles and services are meant to be **publicly readable** (anyone can search 
+and browse, even unauthenticated), while only the owning provider can create 
+or modify their own listings. This mixed public-read / scoped-write permission 
+model is more representative of real marketplace platforms than a simple 
+"isolate by organization" pattern.
+
+So far only the public-read half is built (`GET /api/providers/profiles/`); 
+the owner-scoped write endpoints for `ProviderProfile` and `Service` don't 
+exist yet — see Roadmap.
 
 **Core entities:**
 - `User` — custom user model with a `client` / `provider` role
@@ -62,27 +66,50 @@ git clone https://github.com/KirilShy/LocalPro.git
 cd LocalPro
 python -m venv venv
 source venv/bin/activate       # venv\Scripts\activate on Windows
-pip install -r requirements/local.txt
+pip install -r backend/requirements/local.txt
 
 cp .env.example .env           # then fill in SECRET_KEY and DB_* values
-docker compose up -d           # starts Postgres
+docker compose up -d db redis  # starts Postgres + Redis (backend is also
+                                # dockerized, but --reload workflows are
+                                # smoother running Django from the venv below)
 
-python manage.py migrate
-python manage.py runserver
+python backend/manage.py migrate
+python backend/manage.py runserver
+
+cd frontend
+npm install
+npm run dev                    # http://localhost:5173
 ```
+
+If Docker isn't available, Postgres 16 and Redis installed directly (e.g. 
+`brew install postgresql@16 redis`) work fine too — just match the 
+`DB_*` values in `.env` to whatever's running locally.
 
 ## Roadmap
 
 - [x] Custom User model with role-based access
-- [x] Provider profile and service models with public-read / owner-write permissions
+- [x] Provider profile and service models (schema only — see write endpoints below)
 - [x] JWT authentication
 - [x] Registration flow
-- [x] Postgres via docker-compose for local development
+- [x] Postgres + Redis via docker-compose for local development
+- [x] Backend containerized (production Dockerfile, included in docker-compose)
 - [x] Concurrency-safe booking creation (`select_for_update()`), covered by a threaded test
-- [ ] Booking API endpoints (currently only a service function, no views/serializers yet)
+- [x] Provider list endpoint (public read: `GET /api/providers/profiles/`)
+- [x] React frontend scaffolded (Vite + TS), talking to the API over JWT
+- [ ] Booking creation endpoint is wired up but broken: `CreateBookingView` returns 
+      the raw `Booking` model instance instead of serialized data, so DRF's JSON 
+      renderer will 500 on every successful booking. Needs a `BookingSerializer`.
+- [ ] Provider-owner write endpoints (create/update `ProviderProfile` and `Service`, 
+      scoped to the owning user) — the permission model the README architecture 
+      section describes isn't implemented yet, only the public-read side is
+- [ ] Availability endpoints (model exists; no serializer/view/URL yet)
+- [ ] Real test coverage — only the booking-concurrency test exists; `users` and 
+      `providers` still have the default empty Django test stubs, and `factory_boy` 
+      isn't used anywhere despite being in `requirements/local.txt`
+- [ ] Frontend: remove leftover Vite starter boilerplate from `App.tsx`, add routing, 
+      and build the actual search → book → confirm flow (currently just a login 
+      form + provider list)
 - [ ] Review system
-- [ ] React frontend
-- [ ] Fully dockerized app (Django itself still runs outside Docker)
 - [ ] AI-powered semantic provider search
 - [ ] AWS deployment via Terraform
 - [ ] CI/CD pipeline
