@@ -96,19 +96,20 @@ If Docker isn't available, Postgres 16 and Redis installed directly (e.g.
 - [x] Concurrency-safe booking creation (`select_for_update()`), covered by a threaded test
 - [x] Provider list endpoint (public read: `GET /api/providers/profiles/`)
 - [x] React frontend scaffolded (Vite + TS), talking to the API over JWT
-- [ ] Booking creation endpoint is wired up but broken: `CreateBookingView` returns 
-      the raw `Booking` model instance instead of serialized data, so DRF's JSON 
-      renderer will 500 on every successful booking. Needs a `BookingSerializer`.
+- [x] Booking creation returns serialized data (`BookingSerializer`) instead of a
+      raw model instance
+- [x] Availability endpoints — public list, filterable by service (`GET
+      /api/providers/availability/?service=<id>`)
+- [x] My-bookings endpoint (`GET /api/bookings/mine/`)
+- [x] Frontend: routed app (react-router) with the full search → book → confirm
+      flow — browse providers, view a provider's services and open slots, book a
+      slot, register/log in, review bookings
 - [ ] Provider-owner write endpoints (create/update `ProviderProfile` and `Service`, 
       scoped to the owning user) — the permission model the README architecture 
       section describes isn't implemented yet, only the public-read side is
-- [ ] Availability endpoints (model exists; no serializer/view/URL yet)
 - [ ] Real test coverage — only the booking-concurrency test exists; `users` and 
       `providers` still have the default empty Django test stubs, and `factory_boy` 
       isn't used anywhere despite being in `requirements/local.txt`
-- [ ] Frontend: remove leftover Vite starter boilerplate from `App.tsx`, add routing, 
-      and build the actual search → book → confirm flow (currently just a login 
-      form + provider list)
 - [ ] Review system
 - [ ] AI-powered semantic provider search
 - [ ] AWS deployment via Terraform
